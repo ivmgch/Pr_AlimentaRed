@@ -50,6 +50,9 @@ public class StrikeServiceImpl implements StrikeService {
     @Transactional
     public Strike registrarStrike(Organizacion organizacion, Asignacion asignacion, String nombre,
                                   String detalles, Usuario responsable) {
+        if (organizacion == null) {
+            throw new BusinessRuleException("RN08", "Los strikes aplican únicamente a organizaciones Donantes o Receptoras. Los administradores y coordinadores no pueden recibir strikes.");
+        }
         Strike strike = strikeRepository.save(Strike.builder()
                 .organizacion(organizacion)
                 .asignacion(asignacion)
