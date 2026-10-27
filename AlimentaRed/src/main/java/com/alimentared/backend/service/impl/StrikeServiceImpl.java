@@ -84,6 +84,18 @@ public class StrikeServiceImpl implements StrikeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<StrikeResponse> listarTodosStrikes(Long usuarioId) {
+        Usuario usuario = accesoHelper.usuario(usuarioId);
+        if (!accesoHelper.esCoordinacion(usuario)) {
+            throw new ForbiddenOperationException("Solo la coordinación puede consultar todos los strikes");
+        }
+        return strikeRepository.findAllByOrderByFechaRegistroDesc().stream()
+                .map(organizacionMapper::toStrikeResponse)
+                .toList();
+    }
+
+    @Override
     @Transactional
     public StrikeResponse apelarStrike(Long organizacionId, ApelacionStrikeRequest request, Long usuarioId) {
         Usuario evaluador = accesoHelper.usuario(usuarioId);
@@ -112,7 +124,7 @@ public class StrikeServiceImpl implements StrikeService {
             if (organizacion.isBloqueada() && organizacion.getStrikesVigentes() < properties.reglas().maxStrikes()) {
                 organizacion.setBloqueada(false);
                 auditoriaService.registrar(EntidadAuditada.ORGANIZACION, organizacionId, BLOQUEADA, ACTIVA,
-                        evaluador, "Cuenta reactivada tras apelación de strike");
+                    evaluador, "Cuenta reactivada tras apelación de strike");
             }
         } else {
             auditoriaService.registrar(EntidadAuditada.STRIKE, strike.getIdStrike(), "VIGENTE",

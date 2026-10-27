@@ -17,6 +17,9 @@ public interface StrikeService {
 
     List<StrikeResponse> consultarStrikes(Long organizacionId, Long usuarioId);
 
+    /** RN12: consulta de todos los strikes para la coordinación y administración. */
+    List<StrikeResponse> listarTodosStrikes(Long usuarioId);
+
     /** RN12: evaluación de la apelación por parte de la coordinación. */
     StrikeResponse apelarStrike(Long organizacionId, ApelacionStrikeRequest request, Long usuarioId);
 
