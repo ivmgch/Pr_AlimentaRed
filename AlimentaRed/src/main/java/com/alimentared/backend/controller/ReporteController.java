@@ -33,7 +33,7 @@ public class ReporteController {
 
     @Operation(summary = "Indicadores de impacto por periodo y categoría",
             description = "Alimentos recuperados, tiempos de respuesta y strikes. Por defecto, últimos 30 días")
-    @PreAuthorize("hasAnyRole('COORDINADOR','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('COORDINADOR','ADMINISTRADOR','DONANTE','RECEPTORA')")
     @GetMapping("/impacto")
     public ResponseEntity<ReporteImpactoResponse> impacto(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,

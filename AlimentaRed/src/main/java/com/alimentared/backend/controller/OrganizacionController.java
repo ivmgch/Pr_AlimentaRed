@@ -63,6 +63,13 @@ public class OrganizacionController {
         return ResponseEntity.ok(organizacionService.verificarOrganizacion(id, principal.getId()));
     }
 
+    @Operation(summary = "Listar todos los strikes del sistema", description = "Exclusivo para coordinación y administración")
+    @PreAuthorize("hasAnyRole('COORDINADOR','ADMINISTRADOR')")
+    @GetMapping({"/strikes", "/strikes/todos"})
+    public ResponseEntity<List<StrikeResponse>> listarTodosStrikes(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        return ResponseEntity.ok(strikeService.listarTodosStrikes(principal.getId()));
+    }
+
     @Operation(summary = "Consultar strikes de la organización")
     @GetMapping("/{id}/strikes")
     public ResponseEntity<List<StrikeResponse>> strikes(@PathVariable Long id,

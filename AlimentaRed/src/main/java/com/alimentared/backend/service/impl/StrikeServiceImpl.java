@@ -50,6 +50,9 @@ public class StrikeServiceImpl implements StrikeService {
     @Transactional
     public Strike registrarStrike(Organizacion organizacion, Asignacion asignacion, String nombre,
                                   String detalles, Usuario responsable) {
+        if (organizacion == null) {
+            throw new BusinessRuleException("RN08", "Los strikes aplican únicamente a organizaciones Donantes o Receptoras. Los administradores y coordinadores no pueden recibir strikes.");
+        }
         Strike strike = strikeRepository.save(Strike.builder()
                 .organizacion(organizacion)
                 .asignacion(asignacion)
@@ -76,6 +79,18 @@ public class StrikeServiceImpl implements StrikeService {
             throw new ForbiddenOperationException("No tiene acceso a los strikes de esta organización");
         }
         return strikeRepository.findByOrganizacion_IdOrganizacionOrderByFechaRegistroDesc(organizacionId).stream()
+                .map(organizacionMapper::toStrikeResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StrikeResponse> listarTodosStrikes(Long usuarioId) {
+        Usuario usuario = accesoHelper.usuario(usuarioId);
+        if (!accesoHelper.esCoordinacion(usuario)) {
+            throw new ForbiddenOperationException("Solo la coordinación puede consultar todos los strikes");
+        }
+        return strikeRepository.findAllByOrderByFechaRegistroDesc().stream()
                 .map(organizacionMapper::toStrikeResponse)
                 .toList();
     }
@@ -109,7 +124,7 @@ public class StrikeServiceImpl implements StrikeService {
             if (organizacion.isBloqueada() && organizacion.getStrikesVigentes() < properties.reglas().maxStrikes()) {
                 organizacion.setBloqueada(false);
                 auditoriaService.registrar(EntidadAuditada.ORGANIZACION, organizacionId, BLOQUEADA, ACTIVA,
-                        evaluador, "Cuenta reactivada tras apelación de strike");
+                    evaluador, "Cuenta reactivada tras apelación de strike");
             }
         } else {
             auditoriaService.registrar(EntidadAuditada.STRIKE, strike.getIdStrike(), "VIGENTE",

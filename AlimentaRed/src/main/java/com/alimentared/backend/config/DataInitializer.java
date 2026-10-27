@@ -123,7 +123,24 @@ public class DataInitializer implements CommandLineRunner {
                     .detalles("Llegada 3 horas despus de la franja horaria").vigente(true).fechaRegistro(ahora.minusDays(3)).build());
             strikeRepository.save(Strike.builder().organizacion(orgSuspendida).nombreStrike("INASISTENCIA_RETIRO")
                     .detalles("Reincidencia en inasistencia").vigente(true).fechaRegistro(ahora.minusDays(1)).build());
-            log.info("Strikes de prueba registrados para organizacin suspendida");
+            log.info("Strikes de prueba registrados para organizacion suspendida");
+        }
+
+        // Donante 3: Panadería Sol (Suspendida por 3 strikes para RN08)
+        Organizacion orgPanaderiaSol = obtenerOCrearOrg("901555777-6", "Panadería Sol",
+                "Calle 10 # 15-30, Barrio El Sol", "contacto@panaderiasol.com", "3123456789", true, true, 3);
+        crearUsuarioSiNoExiste(Rol.DONANTE, "Dueño Panadería Sol", "suspendido@panaderiasol.com", "Pass12345", orgPanaderiaSol);
+        crearUsuarioSiNoExiste(Rol.DONANTE, "Dueño Panadería Sol", "panaderiasol@alimentared.com", "Pass12345", orgPanaderiaSol);
+
+        if (strikeRepository.findByOrganizacion_IdOrganizacionOrderByFechaRegistroDesc(orgPanaderiaSol.getIdOrganizacion()).isEmpty()) {
+            LocalDateTime ahora = LocalDateTime.now(clock);
+            strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("ALIMENTO_EN_MAL_ESTADO")
+                    .detalles("Lote de pan entregado con presencia de moho (RN06)").vigente(true).fechaRegistro(ahora.minusDays(6)).build());
+            strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("CANCELACION_TARDIA")
+                    .detalles("Cancelación unilateral de retiro con menos de 1 hora de anticipación").vigente(true).fechaRegistro(ahora.minusDays(4)).build());
+            strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("INCUMPLIMIENTO_CALIDAD")
+                    .detalles("Producto reportado en mal estado por la receptora en punto de entrega (RN08)").vigente(true).fechaRegistro(ahora.minusDays(2)).build());
+            log.info("Strikes de prueba registrados para Panadería Sol (Donante suspendida)");
         }
     }
 
