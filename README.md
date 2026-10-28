@@ -1,0 +1,267 @@
+# 🍃 AlimentaRed - Backend REST API & Microservicios
+
+> **Plataforma de Rescate y Distribución Responsable de Alimentos**  
+> Proyecto de impacto social y comunitario en articulación con la **Universidad de Cundinamarca** para la canalización transparente, control sanitario y optimización de excedentes alimentarios.
+
+---
+
+## 📌 Tabla de Contenidos
+1. [Descripción General](#-descripción-general)
+2. [Arquitectura y Stack Tecnológico](#-arquitectura-y-stack-tecnológico)
+3. [Estructura del Proyecto Spring Boot](#-estructura-del-proyecto-spring-boot)
+4. [Módulos y Endpoints RESTful (RF01 - RF09)](#-módulos-y-endpoints-restful-rf01---rf09)
+5. [Reglas de Negocio y Lógica de Dominio (RN)](#-reglas-de-negocio-y-lógica-de-dominio-rn)
+6. [Tareas Programadas en Segundo Plano (Cron Jobs)](#-tareas-programadas-en-segundo-plano-cron-jobs)
+7. [Base de Datos y Persistencia](#-base-de-datos-y-persistencia)
+8. [Seguridad y Control de Acceso (JWT & Roles)](#-seguridad-y-control-de-acceso-jwt--roles)
+9. [Cuentas de Prueba Preconfiguradas (Seeds)](#-cuentas-de-prueba-preconfiguradas-seeds)
+10. [Pruebas Automatizadas E2E (100% Cobertura)](#-pruebas-automatizadas-e2e-100-cobertura)
+11. [Ejecución Local y Despliegue en la Nube (Docker & Render)](#-ejecución-local-y-despliegue-en-la-nube-docker--render)
+
+---
+
+## 📖 Descripción General
+
+El backend de **AlimentaRed** es una API RESTful desarrollada con **Spring Boot 3.5.x** y **Java 21**, diseñada para brindar un servicio robusto, transaccional y escalable a la aplicación móvil y posibles clientes web. 
+
+Permite coordinar de forma segura la publicación de donaciones de alimentos, solicitudes por parte de comedores comunitarios, reservas de stock atómicas, control de calidad e incidencias de inocuidad, así como la trazabilidad de penalizaciones (strikes) y reportes de impacto social.
+
+---
+
+## 🛠️ Arquitectura y Stack Tecnológico
+
+| Componente | Tecnología | Detalle y Propósito |
+| :--- | :--- | :--- |
+| **Lenguaje** | **Java 21 (LTS)** | Uso de características modernas de lenguaje, Virtual Threads y rendimiento optimizado. |
+| **Framework** | **Spring Boot 3.5.16** | Ecosistema empresarial con Spring Web, Data JPA, Security y Validation. |
+| **Base de Datos** | **PostgreSQL 15+ (Supabase)** | Alojado en la nube con Session Pooler IPv4 y conexión SSL obligatoria. |
+| **Connection Pool** | **HikariCP** | Configuración optimizada de timeout, keep-alive y reciclaje de conexiones inactivas. |
+| **Seguridad** | **Spring Security 6 + JWT** | Autenticación Stateless con librería JJWT (`io.jsonwebtoken 0.12.6`) y BCrypt. |
+| **Documentación** | **SpringDoc OpenAPI 2.8+** | Especificación OpenAPI 3 y consola interactiva de **Swagger UI** integrada. |
+| **Contenedores** | **Docker** | Multi-stage build con Eclipse Temurin 21 JRE Jammy y usuario sin privilegios. |
+| **Despliegue** | **Render (Web Service)** | Orquestación declarativa mediante blueprint `render.yaml`. |
+
+---
+
+## 📂 Estructura del Proyecto Spring Boot
+
+El proyecto sigue una arquitectura en capas limpia y orientada al dominio:
+
+```plaintext
+AlimentaRed/src/main/java/com/alimentared/backend/
+├── AlimentaRedApplication.java      # Clase principal y arranque Spring Boot
+├── config/                          # Configuraciones del sistema
+│   ├── SecurityConfig.java          # Filtros de seguridad, CORS y reglas por ruta
+│   ├── JwtService.java             # Generación, validación y extracción de Claims JWT
+│   ├── JwtTokenFilter.java         # Interceptor por petición para validación de Bearer Token
+│   ├── OpenApiConfig.java          # Metadatos institucionales y esquema Bearer para Swagger UI
+│   ├── SchedulingConfig.java       # Habilitación de tareas programadas (@EnableScheduling)
+│   ├── DataInitializer.java        # Carga inicial de usuarios, organizaciones y lotes semilla
+│   └── RestSecurityErrorHandler.java# Manejador personalizado de errores 401 y 403 en formato JSON
+├── controller/                      # Controladores RESTful con anotaciones OpenAPI
+│   ├── AuthController.java         # Login, registro y validación de tokens
+│   ├── UsuarioController.java      # Consulta de perfil actual (/api/usuarios/me)
+│   ├── TipoAlimentoController.java # Catálogo de tipos de alimentos y unidades de medida
+│   ├── LoteController.java         # Publicación, catálogo, filtros y cancelación de lotes
+│   ├── SolicitudController.java    # Creación, aprobación, rechazo y conteos activos
+│   ├── EntregaController.java      # Asignaciones, retiros físicos y no-recogidas
+│   ├── IncidenciaController.java   # Reporte sanitario, congelación cautelar y resolución
+│   ├── OrganizacionController.java # Consulta institucional, strikes y apelaciones
+│   ├── ReporteController.java      # Indicadores de impacto, kgs rescatados e histórico
+│   └── HealthController.java       # Chequeo de estado (/api/health)
+├── dto/                             # Data Transfer Objects
+│   ├── request/                    # Payloads entrantes con validaciones Jakarta Bean Validation
+│   └── response/                   # DTOs de salida estructurados y paginados (PageResponse)
+├── entity/                          # Entidades JPA persistentes
+│   ├── Usuario.java
+│   ├── Organizacion.java
+│   ├── Lote.java
+│   ├── Solicitud.java
+│   ├── Asignacion.java
+│   ├── Entrega.java
+│   ├── Incidencia.java
+│   ├── Strike.java
+│   ├── HistorialEstado.java
+│   └── TipoAlimento.java
+├── exception/                       # Manejo centralizado de excepciones
+│   ├── GlobalExceptionHandler.java # @RestControllerAdvice para respuestas RFC 7807 normalizadas
+│   └── CustomException.java
+├── repository/                      # Repositorios JPA con Spring Data y Specifications dinámicas
+└── service/                         # Interfaces y lógica de negocio (@Service, @Transactional)
+    ├── impl/                       # Implementaciones concretas de la lógica de dominio
+    ├── InventarioService.java      # Gestión atómica de existencias y compromisos de stock
+    └── AuditoriaService.java       # Registro inmutable de transiciones de estado
+```
+
+---
+
+## ⚙️ Módulos y Endpoints RESTful (RF01 - RF09)
+
+La API cuenta con documentación viva accesible en:
+- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html` (o `/swagger-ui.html`)
+- **OpenAPI JSON:** `http://localhost:8080/v3/api-docs`
+
+### 1. Sistema y Diagnóstico
+* `GET /api/health` — Verifica el estado operativo del servicio y base de datos (Health UP).
+
+### 2. Autenticación y Perfil (RF01, RF02)
+* `POST /api/auth/login` — Autenticación con correo y contraseña. Retorna JWT Bearer y datos de usuario.
+* `POST /api/auth/register` — Registro de organizaciones Donantes o Receptoras con NIT.
+* `GET /api/usuarios/me` — Retorna los datos del usuario autenticado y su organización vinculada.
+
+### 3. Catálogo y Lotes de Alimentos (RF03, RF04)
+* `GET /api/categorias` — Lista categorías de alimentos con unidad de medida.
+* `GET /api/lotes` — Listado paginado con soporte a filtros (`categoriaId`, `rescateUrgente`, `query`).
+* `GET /api/lotes/{id}` — Ficha técnica y existencias disponibles de un lote.
+* `GET /api/lotes/mis-lotes` — Lotes publicados por el donante autenticado.
+* `POST /api/lotes` — Publicación de nuevo lote con fecha de caducidad, cantidad y reglas de empaque.
+* `DELETE /api/lotes/{id}` — Cancelación de lote y liberación de inventario.
+* `GET /api/lotes/{id}/historial` — Historial de estados del lote con fines de auditoría (**RN04**).
+
+### 4. Solicitudes de Donación (RF05, RF06)
+* `POST /api/solicitudes` — Emisión de solicitud por una organización receptora con validación de volumen (**RN02**, **RN05**).
+* `GET /api/solicitudes/mis-solicitudes` — Solicitudes realizadas por la receptora en sesión.
+* `GET /api/solicitudes/activas/conteo` — Conteo de solicitudes activas para control de concurrencia (**RN07**).
+* `GET /api/solicitudes/lote/{loteId}` — Consulta de solicitudes recibidas por el donante para un lote.
+* `PATCH /api/solicitudes/{id}/resolver` — Aprobación o rechazo de solicitud por parte del donante.
+* `PATCH /api/solicitudes/{id}/cancelar` — Cancelación voluntaria por la receptora con liberación de reserva (**RN09**).
+
+### 5. Asignaciones y Entregas Físicas (RF07)
+* `GET /api/entregas/asignaciones` — Asignaciones activas o históricas vinculadas a la organización.
+* `GET /api/entregas/asignaciones/{id}` — Detalle con instrucciones de recogida y contacto del donante.
+* `PATCH /api/entregas/{asignacionId}/confirmar` — Confirmación del retiro físico (parcial o total).
+* `PATCH /api/entregas/{asignacionId}/no-recogida` — Reporte de inasistencia física; genera strike (**RN12**).
+* `GET /api/entregas/asignaciones/{asignacionId}/retiros` — Registro histórico de retiros ejecutados.
+
+### 6. Control de Calidad e Incidencias (RF08)
+* `POST /api/incidencias` — Reporte de anomalía sanitaria; congela cautelarmente el lote.
+* `GET /api/incidencias` — Listado de alertas para supervisión del Coordinador.
+* `GET /api/incidencias/lote/{loteId}` — Historial de incidencias de un lote específico.
+* `PATCH /api/incidencias/{id}/resolver` — Resolución técnica: reactivación del lote o baja definitiva.
+
+### 7. Organizaciones, Strikes y Apelaciones (RF02, RN08, RN12)
+* `GET /api/organizaciones/{id}` — Información de la entidad y estado de verificación.
+* `GET /api/organizaciones/{id}/strikes` — Listado de strikes activos e históricos de la organización.
+* `GET /api/organizaciones/strikes/todos` — Vista consolidada de sanciones para el Coordinador y Administrador.
+* `PATCH /api/organizaciones/{id}/strikes/apelar` — Registro y dictamen de apelación formal de sanciones.
+
+### 8. Reportes de Impacto Social (RF09)
+* `GET /api/reportes/impacto` — Indicadores de kgs recuperados, porcentaje de efectividad y resumen por categoría.
+* `GET /api/reportes/historial` — Historial general de entregas con trazabilidad completa.
+
+---
+
+## ⚖️ Reglas de Negocio y Lógica de Dominio (RN)
+
+| Regla | Nombre | Comportamiento en Backend |
+| :--- | :--- | :--- |
+| **RN01 / RN04** | **Auditoría de Estados** | Registro persistente en `HistorialEstado` ante cualquier cambio de estado en lotes, solicitudes y asignaciones. |
+| **RN02** | **Consistencia de Inventario** | Validación atómica: la cantidad solicitada no puede superar la cantidad disponible no comprometida. |
+| **RN05** | **Empaque y Múltiplos** | La cantidad solicitada debe ser $\ge$ `unidadMinima` y divisible exactamente entre `multiplo`. |
+| **RN07** | **Límite de Concurrencia** | Una receptora no puede tener más de **3 solicitudes activas** simultáneas (`alimentared.reglas.max-solicitudes-activas=3`). |
+| **RN08** | **Suspensión por 3 Strikes** | Si una organización acumula 3 strikes vigentes, se bloquea su login (HTTP 403) y no puede solicitar ni publicar. |
+| **RN09** | **Liberación de Stock** | Al cancelar o rechazar una solicitud, el inventario comprometido retorna inmediatamente al stock disponible. |
+| **RN11** | **Ventana de Retiro** | Plazo máximo de 24 horas (`alimentared.reglas.horas-limite-retiro=24`) para la recogida presencial. |
+| **RN12** | **Sanción por Inasistencia** | Al marcar una asignación como no recogida, se crea un strike con penalización automática para la receptora. |
+| **Rescate Urgente** | **Alerta de Caducidad** | Marcado automático para lotes que vencen en menos de 4 horas (`horas-rescate-urgente=4`). |
+
+---
+
+## ⏰ Tareas Programadas en Segundo Plano (Cron Jobs)
+
+Spring Boot ejecuta rutinas automáticas configuradas en `application.properties`:
+* **Desempate de Solicitudes Concurrentes (`cron.empate`):** Evalúa cada 10 segundos solicitudes que entraron en ventana de empate de 60 segundos.
+* **Monitoreo de SLA de Retiro (`cron.sla`):** Verifica cada minuto asignaciones que han superado el plazo de confirmación de recogida.
+* **Control de Vencimientos (`cron.vencimientos`):** Revisa cada 5 minutos lotes caducados para cambiar su estado a `VENCIDO` y actualizar la bandera de rescate urgente.
+
+---
+
+## 🗄️ Base de Datos y Persistencia
+
+* **Motor:** PostgreSQL con dialecto JPA `org.hibernate.dialect.PostgreSQLDialect`.
+* **Esquema:** Administrado en `schema_supabase.sql` con constraints de integridad referencial, checks de rangos y valores por defecto.
+* **Estrategia DDL:** Configurable vía variable de entorno `DDL_AUTO` (`update` en local, `none` en producción con Supabase).
+* **Pool HikariCP:** Parámetros configurados con `maximum-pool-size=5`, `max-lifetime=60000ms` y `keepalive-time=15000ms` para garantizar compatibilidad con el pooler de Supabase.
+
+---
+
+## 🔒 Seguridad y Control de Acceso (JWT & Roles)
+
+* **Algoritmo:** HMAC SHA-256 (`Keys.hmacShaKeyFor`).
+* **Tiempo de Expiración:** 60 minutos configurables en `alimentared.jwt.expiracion-minutos`.
+* **Jerarquía de Roles:**
+  - `ROLE_DONANTE`: Publicación y administración de lotes propios, resolución de solicitudes y entrega física.
+  - `ROLE_RECEPTORA`: Exploración de catálogo, emisión de solicitudes de donación y apelación de strikes.
+  - `ROLE_COORDINADOR`: Supervisión sanitaria de incidencias, auditoría logística y reportes de impacto.
+  - `ROLE_ADMIN`: Control institucional de organizaciones, gestión global de usuarios y dictamen de apelaciones.
+
+---
+
+## 👥 Cuentas de Prueba Preconfiguradas (Seeds)
+
+Cargadas automáticamente en el arranque por `DataInitializer`:
+
+| Rol | Correo Electrónico | Contraseña | Organización | Notas de Prueba |
+| :--- | :--- | :--- | :--- | :--- |
+| **Receptora** | `receptora@pancompartido.org` | `Pass12345` | Fundación Pan Compartido | Cuenta operativa normal |
+| **Receptora 2** | `receptora@comedoresperanza.org` | `Pass12345` | Comedor Esperanza | Cuenta para validación de concurrencia |
+| **Donante** | `donante@saborcasero.com` | `Pass12345` | Restaurante Sabor Casero | Publicador de alimentos |
+| **Coordinador**| `coordinador@alimentared.com` | `Coord12345` | AlimentaRed Central | Supervisor de calidad |
+| **Admin** | `admin@alimentared.com` | `Admin12345` | AlimentaRed Central | Administrador del sistema |
+| **Suspendido (RN08)** | `suspendido@abuelitospaz.org` | `Pass12345` | Hogar Abuelitos de la Paz | 3 strikes (Login retorna HTTP 403) |
+| **Donante Bloqueado** | `suspendido@panaderiasol.com` | `Pass12345` | Panadería Sol de Oro | 3 strikes (Bloqueo en donante) |
+
+---
+
+## 🧪 Pruebas Automatizadas E2E (100% Cobertura)
+
+El repositorio incluye un script de validación integral automatizado en PowerShell: `test_e2e_verification.ps1`.
+
+### Ejecución de la Suite:
+```powershell
+powershell -ExecutionPolicy Bypass -File test_e2e_verification.ps1
+```
+
+### Resultados de la Cobertura:
+* **Módulos Auditados:** Sistema (Salud y Swagger), Auth & Roles, Usuarios, Categorías, Lotes, Solicitudes, Entregas/Asignaciones, Incidencias, Organizaciones/Strikes y Reportes.
+* **Cobertura Funcional:** **100%** de endpoints y validaciones de reglas de negocio (**RN02**, **RN05**, **RN07**, **RN08**, **RN12**).
+
+---
+
+## 🚀 Ejecución Local y Despliegue en la Nube (Docker & Render)
+
+### 1. Ejecución Local con Maven
+```bash
+# Compilar y empaquetar
+./mvnw clean package -DskipTests
+
+# Ejecutar el servidor
+./mvnw spring-boot:run
+```
+El servidor quedará disponible en `http://localhost:8080`.
+
+### 2. Ejecución con Docker
+```bash
+# Construir la imagen
+docker build -t alimentared-backend .
+
+# Ejecutar el contenedor
+docker run -p 8080:8080 \
+  -e DB_URL="jdbc:postgresql://<HOST>:5432/<DB>?sslmode=require" \
+  -e DB_USERNAME="<USER>" \
+  -e DB_PASSWORD="<PASS>" \
+  alimentared-backend
+```
+
+### 3. Despliegue en Render (Cloud)
+El repositorio cuenta con `render.yaml` listo para despliegue automatizado:
+1. Conectar el repositorio de GitHub en el panel de **Render**.
+2. Crear un nuevo servicio a partir del **Blueprint** (`render.yaml`).
+3. Definir la variable secreta `DB_PASSWORD` en el panel de configuración de Render.
+4. Render iniciará automáticamente la fase de compilación y expondrá el servicio con HTTPS y health checks activos en `/api/health`.
+
+---
+
+## 📜 Licencia y Créditos
+
+Proyecto desarrollado como iniciativa de impacto social y comunitario en el marco académico de la **Universidad de Cundinamarca**. Prohibida su comercialización sin previa autorización institucional.

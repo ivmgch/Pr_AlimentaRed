@@ -11,15 +11,15 @@ services:
       - key: PORT
         value: 8080
       - key: DB_URL
-        sync: false
+        value: jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
       - key: DB_USERNAME
-        sync: false
+        value: postgres.icnpffaunpbfjlkgctjj
       - key: DB_PASSWORD
         sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: DDL_AUTO
-        value: update
+        value: none
       - key: ALIMENTARED_SCHEDULING_ENABLED
         value: "true"
       - key: ALIMENTARED_SEED_HABILITADO
