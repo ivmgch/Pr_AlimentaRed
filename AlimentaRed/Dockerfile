@@ -32,10 +32,5 @@ COPY --from=builder /workspace/target/*.jar /app/alimentared.jar
 ENV PORT=8080
 EXPOSE 8080
 
-# Parámetros optimizados para contenedor
-ENTRYPOINT ["java", \
-    "-XX:+UseContainerSupport", \
-    "-XX:MaxRAMPercentage=75.0", \
-    "-Djava.security.egd=file:/dev/./urandom", \
-    "-Dserver.port=${PORT}", \
-    "-jar", "/app/alimentared.jar"]
+# Parámetros optimizados para contenedor (Render inyecta PORT dinámico)
+ENTRYPOINT ["sh", "-c", "exec java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -jar /app/alimentared.jar"]
