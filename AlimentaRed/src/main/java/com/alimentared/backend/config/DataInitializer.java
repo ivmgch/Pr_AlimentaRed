@@ -135,11 +135,11 @@ public class DataInitializer implements CommandLineRunner {
         if (strikeRepository.findByOrganizacion_IdOrganizacionOrderByFechaRegistroDesc(orgPanaderiaSol.getIdOrganizacion()).isEmpty()) {
             LocalDateTime ahora = LocalDateTime.now(clock);
             strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("ALIMENTO_EN_MAL_ESTADO")
-                    .detalles("Lote de pan entregado con presencia de moho (RN06)").vigente(true).fechaRegistro(ahora.minusDays(6)).build());
+                    .detalles("Lote de pan entregado con presencia de moho").vigente(true).fechaRegistro(ahora.minusDays(6)).build());
             strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("CANCELACION_TARDIA")
                     .detalles("Cancelación unilateral de retiro con menos de 1 hora de anticipación").vigente(true).fechaRegistro(ahora.minusDays(4)).build());
             strikeRepository.save(Strike.builder().organizacion(orgPanaderiaSol).nombreStrike("INCUMPLIMIENTO_CALIDAD")
-                    .detalles("Producto reportado en mal estado por la receptora en punto de entrega (RN08)").vigente(true).fechaRegistro(ahora.minusDays(2)).build());
+                    .detalles("Producto reportado en mal estado por la receptora en punto de entrega").vigente(true).fechaRegistro(ahora.minusDays(2)).build());
             log.info("Strikes de prueba registrados para Panadería Sol (Donante suspendida)");
         }
     }

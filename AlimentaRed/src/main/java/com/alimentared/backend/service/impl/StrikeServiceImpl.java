@@ -143,7 +143,7 @@ public class StrikeServiceImpl implements StrikeService {
     private void bloquearCuenta(Organizacion organizacion, Usuario responsable, int maximo) {
         organizacion.setBloqueada(true);
         auditoriaService.registrar(EntidadAuditada.ORGANIZACION, organizacion.getIdOrganizacion(), ACTIVA,
-                BLOQUEADA, responsable, "RN08: acumulación de %d strikes".formatted(maximo));
+                BLOQUEADA, responsable, "Acumulación de %d strikes".formatted(maximo));
 
         LocalDateTime ahora = LocalDateTime.now(clock);
         List<Solicitud> pendientes = solicitudRepository.findByOrganizacion_IdOrganizacionAndEstado(
@@ -154,7 +154,7 @@ public class StrikeServiceImpl implements StrikeService {
             solicitud.setEnEmpate(false);
             solicitud.setMotivoResolucion("Cuenta suspendida por acumulación de strikes");
             auditoriaService.registrar(EntidadAuditada.SOLICITUD, solicitud.getIdSolicitud(),
-                    EstadoSolicitud.PENDIENTE, EstadoSolicitud.CANCELADO, responsable, "Cuenta suspendida (RN08)");
+                    EstadoSolicitud.PENDIENTE, EstadoSolicitud.CANCELADO, responsable, "Cuenta suspendida");
         }
         log.info("Organización {} suspendida por strikes", organizacion.getIdOrganizacion());
     }

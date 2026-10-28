@@ -306,7 +306,7 @@ public class SolicitudServiceImpl implements SolicitudService {
                 .usuarioResponsable(responsable)
                 .build());
         auditoriaService.registrar(EntidadAuditada.ASIGNACION, asignacion.getIdAsignacion(), null,
-                EstadoAsignacion.ACTIVA, responsable, automatica ? "Auto-asignación FCFS (RN09)" : "Asignación aprobada");
+                EstadoAsignacion.ACTIVA, responsable, automatica ? "Auto-asignación FCFS" : "Asignación aprobada");
 
         if (lote.getCantidadDisponible().signum() == 0) {
             solicitudRepository.findByLote_IdLoteAndEstadoOrderByFechaCreacionAsc(lote.getIdLote(), EstadoSolicitud.PENDIENTE)
@@ -346,7 +346,7 @@ public class SolicitudServiceImpl implements SolicitudService {
         solicitud.setEnEmpate(true);
         auditoriaService.registrar(EntidadAuditada.SOLICITUD, solicitud.getIdSolicitud(), EstadoSolicitud.PENDIENTE,
                 PENDIENTE_DECISION_DONANTE, null,
-                "RN09: varias solicitudes en la misma ventana; el donante decide la asignación");
+                "Varias solicitudes en la misma ventana; el donante decide la asignación");
     }
 
     private void validarPendiente(Solicitud solicitud) {
