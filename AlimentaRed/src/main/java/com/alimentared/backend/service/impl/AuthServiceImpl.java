@@ -4,6 +4,7 @@ import com.alimentared.backend.config.JwtService;
 import com.alimentared.backend.config.UsuarioPrincipal;
 import com.alimentared.backend.dto.request.LoginRequest;
 import com.alimentared.backend.dto.request.RegisterRequest;
+import com.alimentared.backend.dto.request.RestablecerContrasenaRequest;
 import com.alimentared.backend.dto.response.AuthResponse;
 import com.alimentared.backend.entity.Organizacion;
 import com.alimentared.backend.entity.Usuario;
@@ -12,6 +13,7 @@ import com.alimentared.backend.entity.enums.Rol;
 import com.alimentared.backend.exception.AccountBlockedException;
 import com.alimentared.backend.exception.BusinessRuleException;
 import com.alimentared.backend.exception.DuplicateResourceException;
+import com.alimentared.backend.exception.ResourceNotFoundException;
 import com.alimentared.backend.mapper.OrganizacionMapper;
 import com.alimentared.backend.mapper.UsuarioMapper;
 import com.alimentared.backend.repository.OrganizacionRepository;
@@ -93,6 +95,24 @@ public class AuthServiceImpl implements AuthService {
         auditoriaService.registrar(EntidadAuditada.ORGANIZACION, organizacion.getIdOrganizacion(), null,
                 "PENDIENTE_VERIFICACION", usuario, "Registro de organización " + request.rol());
         return construirRespuesta(usuario);
+    }
+
+    @Override
+    @Transactional
+    public void restablecerContrasena(RestablecerContrasenaRequest request) {
+        String correo = request.correo().trim().toLowerCase();
+        Usuario usuario = usuarioRepository.findWithOrganizacionByCorreoIgnoreCase(correo)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe ninguna cuenta registrada con el correo: " + correo));
+
+        if (!usuario.isActivo()) {
+            throw new AccountBlockedException("La cuenta de usuario se encuentra inactiva");
+        }
+        if (passwordEncoder.matches(request.contrasenaNueva(), usuario.getContrasena())) {
+            throw new BusinessRuleException("La nueva contraseña debe ser distinta a la actual");
+        }
+
+        usuario.setContrasena(passwordEncoder.encode(request.contrasenaNueva()));
+        usuarioRepository.save(usuario);
     }
 
     private AuthResponse construirRespuesta(Usuario usuario) {

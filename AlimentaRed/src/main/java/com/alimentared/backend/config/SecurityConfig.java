@@ -30,6 +30,7 @@ public class SecurityConfig {
     private static final String[] RUTAS_PUBLICAS = {
             "/api/auth/login",
             "/api/auth/register",
+            "/api/auth/restablecer-contrasena",
             "/api/health",
             "/api/sistema/salud",
             "/v3/api-docs/**",

@@ -2,6 +2,7 @@ package com.alimentared.backend.controller;
 
 import com.alimentared.backend.dto.request.LoginRequest;
 import com.alimentared.backend.dto.request.RegisterRequest;
+import com.alimentared.backend.dto.request.RestablecerContrasenaRequest;
 import com.alimentared.backend.dto.response.AuthResponse;
 import com.alimentared.backend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,5 +37,13 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrarUsuario(request));
+    }
+
+    @Operation(summary = "Restablecer contraseña",
+            description = "Permite a cualquier usuario (donante, receptora, coordinador o administrador) restablecer su contraseña olvidada")
+    @PostMapping("/restablecer-contrasena")
+    public ResponseEntity<Void> restablecerContrasena(@Valid @RequestBody RestablecerContrasenaRequest request) {
+        authService.restablecerContrasena(request);
+        return ResponseEntity.noContent().build();
     }
 }
