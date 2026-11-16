@@ -91,36 +91,36 @@ public class DataInitializer implements CommandLineRunner {
     private void crearOrganizacionesYUsuarios() {
         // Donante 1: Restaurante Sabor Casero
         Organizacion orgDonante1 = obtenerOCrearOrg("901234567-1", "Restaurante Sabor Casero",
-                "Centro Histrico, Carrera 7 # 12-40", "contacto@saborcasero.com", "3101234567", true, false, 0);
-        crearUsuarioSiNoExiste(Rol.DONANTE, "Chef Martn Prez", "donante@saborcasero.com", "Pass12345", orgDonante1);
+                "Restaurante Sabor Casero, Carrera 7 # 12-40, La Candelaria, Bogotá [4.59810, -74.07580]", "contacto@saborcasero.com", "3101234567", true, false, 0);
+        crearUsuarioSiNoExiste(Rol.DONANTE, "Chef Martín Pérez", "donante@saborcasero.com", "Pass12345", orgDonante1);
 
         // Donante 2: Panificadora Central SAS
         Organizacion orgDonante2 = obtenerOCrearOrg("901876543-2", "Panificadora Central SAS",
-                "Zona Industrial, Calle 26 # 68-15", "donaciones@panificadoracentral.com", "3157654321", true, false, 0);
+                "Panificadora Central SAS, Av. Calle 26 # 68-15, Fontibón, Bogotá [4.67500, -74.13500]", "donaciones@panificadoracentral.com", "3157654321", true, false, 0);
         crearUsuarioSiNoExiste(Rol.DONANTE, "Gerente Panificadora Central", "donante@panificadoracentral.com", "Pass12345", orgDonante2);
 
-        // Receptora 1: Fundacin Pan Compartido
-        Organizacion orgReceptora1 = obtenerOCrearOrg("800987654-3", "Fundacin Pan Compartido",
-                "Comuna 4, Manzana 12 Casa 5", "direccion@pancompartido.org", "3209876543", true, false, 0);
+        // Receptora 1: Fundación Pan Compartido
+        Organizacion orgReceptora1 = obtenerOCrearOrg("800987654-3", "Fundación Pan Compartido",
+                "Fundación Pan Compartido, Comuna 4, Manzana 12 Casa 5, Soacha [4.57800, -74.21800]", "direccion@pancompartido.org", "3209876543", true, false, 0);
         crearUsuarioSiNoExiste(Rol.RECEPTORA, "Hermana Teresa - Pan Compartido", "receptora@pancompartido.org", "Pass12345", orgReceptora1);
 
         // Receptora 2: Comedor Infantil Esperanza
         Organizacion orgReceptora2 = obtenerOCrearOrg("800345678-4", "Comedor Infantil Esperanza",
-                "Barrio El Carmen, Transversal 15 # 3-22", "coordinacion@comedoresperanza.org", "3183456789", true, false, 0);
+                "Comedor Infantil Esperanza, Barrio El Carmen, Transversal 15 # 3-22, Tunjuelito, Bogotá [4.58200, -74.13300]", "coordinacion@comedoresperanza.org", "3183456789", true, false, 0);
         crearUsuarioSiNoExiste(Rol.RECEPTORA, "Trabajadora Social Laura", "receptora@comedoresperanza.org", "Pass12345", orgReceptora2);
 
         // Receptora 3 (Suspendida por 3 strikes para RN08)
         Organizacion orgSuspendida = obtenerOCrearOrg("800555999-5", "Hogar Abuelitos de la Paz",
-                "Barrio San Carlos, Carrera 10 # 45-10", "contacto@abuelitospaz.org", "3115559999", true, true, 3);
+                "Hogar Abuelitos de la Paz, Barrio San Carlos, Carrera 10 # 45-10, Bogotá [4.57120, -74.12050]", "contacto@abuelitospaz.org", "3115559999", true, true, 3);
         crearUsuarioSiNoExiste(Rol.RECEPTORA, "Delegado Abuelitos de la Paz", "suspendido@abuelitospaz.org", "Pass12345", orgSuspendida);
 
-        // Crear 3 strikes vigentes para la organizacin suspendida
+        // Crear 3 strikes vigentes para la organización suspendida
         if (strikeRepository.findByOrganizacion_IdOrganizacionOrderByFechaRegistroDesc(orgSuspendida.getIdOrganizacion()).isEmpty()) {
             LocalDateTime ahora = LocalDateTime.now(clock);
             strikeRepository.save(Strike.builder().organizacion(orgSuspendida).nombreStrike("INASISTENCIA_RETIRO")
-                    .detalles("No se present a retirar lote asignado").vigente(true).fechaRegistro(ahora.minusDays(5)).build());
+                    .detalles("No se presentó a retirar lote asignado").vigente(true).fechaRegistro(ahora.minusDays(5)).build());
             strikeRepository.save(Strike.builder().organizacion(orgSuspendida).nombreStrike("FUERA_DE_FRANJA")
-                    .detalles("Llegada 3 horas despus de la franja horaria").vigente(true).fechaRegistro(ahora.minusDays(3)).build());
+                    .detalles("Llegada 3 horas después de la franja horaria").vigente(true).fechaRegistro(ahora.minusDays(3)).build());
             strikeRepository.save(Strike.builder().organizacion(orgSuspendida).nombreStrike("INASISTENCIA_RETIRO")
                     .detalles("Reincidencia en inasistencia").vigente(true).fechaRegistro(ahora.minusDays(1)).build());
             log.info("Strikes de prueba registrados para organizacion suspendida");
@@ -128,7 +128,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Donante 3: Panadería Sol (Suspendida por 3 strikes para RN08)
         Organizacion orgPanaderiaSol = obtenerOCrearOrg("901555777-6", "Panadería Sol",
-                "Calle 10 # 15-30, Barrio El Sol", "contacto@panaderiasol.com", "3123456789", true, true, 3);
+                "Panadería Sol, Calle 10 # 15-30, Barrio El Sol, Bogotá [4.60250, -74.08120]", "contacto@panaderiasol.com", "3123456789", true, true, 3);
         crearUsuarioSiNoExiste(Rol.DONANTE, "Dueño Panadería Sol", "suspendido@panaderiasol.com", "Pass12345", orgPanaderiaSol);
         crearUsuarioSiNoExiste(Rol.DONANTE, "Dueño Panadería Sol", "panaderiasol@alimentared.com", "Pass12345", orgPanaderiaSol);
 
@@ -182,61 +182,117 @@ public class DataInitializer implements CommandLineRunner {
         TipoAlimento comPreparada = categorias.stream().filter(c -> c.getNombre().toLowerCase().contains("comida")).findFirst().orElse(categorias.get(0));
         TipoAlimento panaderia = categorias.stream().filter(c -> c.getNombre().toLowerCase().contains("panad")).findFirst().orElse(categorias.get(0));
         TipoAlimento frutas = categorias.stream().filter(c -> c.getNombre().toLowerCase().contains("fruta")).findFirst().orElse(categorias.get(0));
+        TipoAlimento lacteos = categorias.stream().filter(c -> c.getNombre().toLowerCase().contains("lact")).findFirst().orElse(categorias.get(0));
+        TipoAlimento granos = categorias.stream().filter(c -> c.getNombre().toLowerCase().contains("grano")).findFirst().orElse(categorias.get(0));
 
         LocalDateTime ahora = LocalDateTime.now(clock);
 
         loteRepository.save(Lote.builder()
-                .nombre("Sopa nutritiva y verduras cocidas")
-                .descripcion("Porciones individuales empacadas en recipientes trmicos, aptas para consumo el mismo da.")
+                .nombre("Sopa nutritiva y verduras campesinas")
+                .descripcion("Porciones individuales empacadas en recipientes térmicos herméticos con sello de inocuidad.")
                 .categoria(comPreparada)
                 .donante(donante1)
+                .cantidadInicial(new BigDecimal("45.000"))
+                .cantidadDisponible(new BigDecimal("45.000"))
+                .unidadMinima(new BigDecimal("5.000"))
+                .multiplo(new BigDecimal("5.000"))
+                .estado(EstadoLote.DISPONIBLE)
+                .estadoAlimento(EstadoAlimento.FRESCO)
+                .ubicacion("Restaurante Sabor Casero, Carrera 7 # 12-40, La Candelaria, Bogotá [4.59810, -74.07580]")
+                .instruccionesRecogida("Ingresar por la entrada lateral de despachos en Calle 12. Preguntar por Chef Martín Pérez.")
+                .contacto("Chef Martín Pérez - 3101234567")
+                .fechaRegistro(ahora)
+                .fechaCaducidad(ahora.plusHours(6))
+                .build());
+
+        loteRepository.save(Lote.builder()
+                .nombre("Pan artesanal campesino e integral")
+                .descripcion("Bolsas de papel termoselladas de 10 unidades de pan recién horneado del turno de la mañana.")
+                .categoria(panaderia)
+                .donante(donante2)
+                .cantidadInicial(new BigDecimal("120.000"))
+                .cantidadDisponible(new BigDecimal("120.000"))
+                .unidadMinima(new BigDecimal("20.000"))
+                .multiplo(new BigDecimal("10.000"))
+                .estado(EstadoLote.DISPONIBLE)
+                .estadoAlimento(EstadoAlimento.FRESCO)
+                .ubicacion("Panificadora Central SAS, Av. Calle 26 # 68-15, Fontibón, Bogotá [4.67500, -74.13500]")
+                .instruccionesRecogida("Reclamar en el área de despachos con documento de identidad y orden de retiro.")
+                .contacto("Bodega Despachos - 3157654321")
+                .fechaRegistro(ahora)
+                .fechaCaducidad(ahora.plusHours(48))
+                .build());
+
+        loteRepository.save(Lote.builder()
+                .nombre("Frutas mixtas (Manzanas Royal y Plátanos)")
+                .descripcion("Canastillas plásticas con fruta fresca seleccionada en punto óptimo de maduración.")
+                .categoria(frutas)
+                .donante(donante1)
+                .cantidadInicial(new BigDecimal("60.000"))
+                .cantidadDisponible(new BigDecimal("60.000"))
+                .unidadMinima(new BigDecimal("10.000"))
+                .multiplo(new BigDecimal("5.000"))
+                .estado(EstadoLote.DISPONIBLE)
+                .estadoAlimento(EstadoAlimento.FRESCO)
+                .ubicacion("Plaza de Mercado Paloquemao, Calle 19 # 25-04, Los Mártires, Bogotá [4.61450, -74.08860]")
+                .instruccionesRecogida("Pabellón de frutas, Local 142. Presentar canastillas limpias para transbordo.")
+                .contacto("Martín Pérez - 3101234567")
+                .fechaRegistro(ahora)
+                .fechaCaducidad(ahora.plusHours(3)) // < 4 horas para disparar alerta de rescate urgente
+                .build());
+
+        loteRepository.save(Lote.builder()
+                .nombre("Lote de leche entera y yogur natural")
+                .descripcion("Cajas selladas de leche pasteurizada de 1L y galones de yogur natural. Mantener refrigeración.")
+                .categoria(lacteos)
+                .donante(donante2)
                 .cantidadInicial(new BigDecimal("50.000"))
                 .cantidadDisponible(new BigDecimal("50.000"))
                 .unidadMinima(new BigDecimal("10.000"))
                 .multiplo(new BigDecimal("5.000"))
                 .estado(EstadoLote.DISPONIBLE)
                 .estadoAlimento(EstadoAlimento.FRESCO)
-                .ubicacion("Centro Histrico, Carrera 7 # 12-40")
-                .instruccionesRecogida("Ingresar por el muelle de carga posterior. Preguntar por el Chef Martn.")
-                .contacto("Martn Prez - 3101234567")
+                .ubicacion("Panificadora Central SAS, Av. Calle 26 # 68-15, Fontibón, Bogotá [4.67500, -74.13500]")
+                .instruccionesRecogida("Muelle refrigerado 2. Traer nevera de transporte isotérmica.")
+                .contacto("Control de Calidad Lácteos - 3157654321")
                 .fechaRegistro(ahora)
-                .fechaCaducidad(ahora.plusHours(6))
+                .fechaCaducidad(ahora.plusHours(72))
                 .build());
 
         loteRepository.save(Lote.builder()
-                .nombre("Lote de pan campesino e integral")
-                .descripcion("Bolsas selladas de 10 unidades de pan recin horneado del da anterior.")
-                .categoria(panaderia)
-                .donante(donante2)
-                .cantidadInicial(new BigDecimal("100.000"))
-                .cantidadDisponible(new BigDecimal("100.000"))
+                .nombre("Hortalizas y papas seleccionadas")
+                .descripcion("Bultos de 25 kg con papa pastusa y zanahorias frescas cosechadas de la sabana.")
+                .categoria(frutas)
+                .donante(donante1)
+                .cantidadInicial(new BigDecimal("80.000"))
+                .cantidadDisponible(new BigDecimal("80.000"))
                 .unidadMinima(new BigDecimal("20.000"))
                 .multiplo(new BigDecimal("10.000"))
                 .estado(EstadoLote.DISPONIBLE)
                 .estadoAlimento(EstadoAlimento.FRESCO)
-                .ubicacion("Zona Industrial, Calle 26 # 68-15")
-                .instruccionesRecogida("Reclamar en el rea de despachos con documento de identificacin.")
-                .contacto("Bodega Despachos - 3157654321")
+                .ubicacion("Central Mayorista Corabastos, Av. Carrera 80 # 2-51, Bodega 4, Kennedy [4.62840, -74.15370]")
+                .instruccionesRecogida("Muelle 12 de Corabastos. Vehículo de carga requerido para despacho.")
+                .contacto("Despachos Corabastos - 3109998877")
                 .fechaRegistro(ahora)
-                .fechaCaducidad(ahora.plusHours(24))
+                .fechaCaducidad(ahora.plusHours(96))
                 .build());
 
         loteRepository.save(Lote.builder()
-                .nombre("Frutas mixtas (Manzanas y Pltanos)")
-                .descripcion("Canastillas con fruta en punto ptimo de maduracin.")
-                .categoria(frutas)
-                .donante(donante1)
-                .cantidadInicial(new BigDecimal("40.000"))
-                .cantidadDisponible(new BigDecimal("40.000"))
-                .unidadMinima(new BigDecimal("10.000"))
-                .multiplo(new BigDecimal("5.000"))
+                .nombre("Atún en lomitos y arvejas en conserva")
+                .descripcion("Cajas máster de 24 latas de lomitos de atún en agua (140g) y arvejas con zanahoria enlatadas.")
+                .categoria(granos)
+                .donante(donante2)
+                .cantidadInicial(new BigDecimal("96.000"))
+                .cantidadDisponible(new BigDecimal("96.000"))
+                .unidadMinima(new BigDecimal("24.000"))
+                .multiplo(new BigDecimal("12.000"))
                 .estado(EstadoLote.DISPONIBLE)
                 .estadoAlimento(EstadoAlimento.FRESCO)
-                .ubicacion("Centro Histrico, Carrera 7 # 12-40")
-                .instruccionesRecogida("Presentarse en recepcin principal con canastillas limpias.")
-                .contacto("Martn Prez - 3101234567")
+                .ubicacion("Zona Norte Usaquén, Carrera 6 # 119-24, Usaquén, Bogotá [4.69750, -74.03050]")
+                .instruccionesRecogida("Recepción de almacén norte. Presentar documento institucional.")
+                .contacto("Almacén Usaquén - 3125556677")
                 .fechaRegistro(ahora)
-                .fechaCaducidad(ahora.plusHours(3)) // < 4 horas para disparar alerta de rescate urgente
+                .fechaCaducidad(ahora.plusDays(180))
                 .build());
 
         log.info("Lotes de alimentos de prueba creados exitosamente");
